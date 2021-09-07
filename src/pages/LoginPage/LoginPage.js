@@ -9,6 +9,41 @@ const ErrorMessage = styled.div`
   color: red;
 `;
 
+const FormContainer = styled.form`
+  text-align: center;
+`;
+
+const InputContainer = styled.div`
+  margin-top: 20px;
+`;
+
+const InputTitle = styled.span`
+  display: inline-block;
+  width: 100px;
+  font-size: 20px;
+  margin-right: 10px;
+  text-align: end;
+`;
+
+const InputBox = styled.input`
+  height: 20px;
+`;
+
+const SubmitButton = styled.button`
+  margin-top: 20px;
+  width: 80px;
+  height: 40px;
+  font-size: 20px;
+  background-color: white;
+  border: 1px solid #0008;
+  border-radius: 10px;
+
+  &:hover {
+    background-color: #0008;
+    color: #fff;
+  }
+`;
+
 export default function LoginPage() {
   const { setUser } = useContext(AuthoContext);
   const [username, setUsername] = useState("");
@@ -19,6 +54,10 @@ export default function LoginPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMessage(null);
+
+    if (!username || !password)
+      return setErrorMessage("請填寫 Username 和 Password");
+
     login(username, password).then((data) => {
       if (data.ok === 0) {
         return setErrorMessage(data.message);
@@ -27,7 +66,7 @@ export default function LoginPage() {
       getMe(data.token).then((response) => {
         if (response.ok !== 1) {
           setAuthToken(null);
-          return setErrorMessage(response.toString());
+          return setErrorMessage(response.message.toString());
         }
 
         setUser(response.data);
@@ -36,21 +75,24 @@ export default function LoginPage() {
     });
   };
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        username:{" "}
-        <input value={username} onChange={(e) => setUsername(e.target.value)} />
-      </div>
-      <div>
-        password:{" "}
-        <input
+    <FormContainer onSubmit={handleSubmit}>
+      <InputContainer>
+        <InputTitle>Username：</InputTitle>
+        <InputBox
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+      </InputContainer>
+      <InputContainer>
+        <InputTitle>Password:</InputTitle>
+        <InputBox
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-      </div>
-      <button>登入</button>
+      </InputContainer>
+      <SubmitButton>登入</SubmitButton>
       {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-    </form>
+    </FormContainer>
   );
 }

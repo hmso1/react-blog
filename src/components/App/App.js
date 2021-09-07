@@ -8,7 +8,7 @@ import LoginPage from "../../pages/LoginPage";
 import BlogPost from "../../pages/BlogPost";
 import { AuthoContext } from "../../contexts";
 import { getMe } from "../../WebAPI";
-import { getAuthToken } from "../utils";
+import { getAuthToken, setAuthToken } from "../utils";
 
 const Root = styled.div`
   padding-top: 60px;
@@ -16,6 +16,7 @@ const Root = styled.div`
 
 function App() {
   const [user, setUser] = useState(null);
+  const [isGettingUser, setIsGettingUser] = useState(true);
 
   useEffect(() => {
     // 有 token 先 call api
@@ -23,13 +24,17 @@ function App() {
     if (token === "") return;
 
     getMe(token).then((response) => {
-      if (response.ok) {
+      if (response.ok === 1) {
         setUser(response.data);
+      } else {
+        setAuthToken("");
+        setUser(null);
       }
+      setIsGettingUser(false);
     });
   }, []);
   return (
-    <AuthoContext.Provider value={{ user, setUser }}>
+    <AuthoContext.Provider value={{ user, setUser, isGettingUser }}>
       <Root>
         <Router>
           <Header />

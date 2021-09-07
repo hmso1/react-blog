@@ -57,7 +57,7 @@ const LeftContainer = styled.div`
 
 export default function Header() {
   const locations = useLocation();
-  const { user, setUser } = useContext(AuthoContext);
+  const { user, setUser, isGettingUser } = useContext(AuthoContext);
 
   const handleLogout = () => {
     setAuthToken("");
@@ -78,18 +78,20 @@ export default function Header() {
           )}
         </NavbarList>
       </LeftContainer>
-      <NavbarList>
-        {!user && (
-          <Nav to="/login" $active={locations.pathname === "/login"}>
-            登入
-          </Nav>
-        )}
-        {user && (
-          <Nav to="/" onClick={handleLogout}>
-            登出
-          </Nav>
-        )}
-      </NavbarList>
+      {!isGettingUser && (
+        <NavbarList>
+          {!user && (
+            <Nav to="/login" $active={locations.pathname === "/login"}>
+              登入
+            </Nav>
+          )}
+          {user && (
+            <Nav to="/" onClick={handleLogout}>
+              登出
+            </Nav>
+          )}
+        </NavbarList>
+      )}
     </HeaderContainer>
   );
 }
