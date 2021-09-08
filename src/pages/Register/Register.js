@@ -1,6 +1,7 @@
-import { useState, useContext } from "react";
-import { login, getMe } from "../../WebAPI";
 import styled from "styled-components";
+import { useState, useContext } from "react";
+
+import { register, getMe } from "../../WebAPI";
 import { setAuthToken } from "../../utils";
 import { useHistory } from "react-router-dom";
 import { AuthContext } from "../../contexts";
@@ -19,7 +20,7 @@ const InputContainer = styled.div`
 
 const InputTitle = styled.span`
   display: inline-block;
-  width: 100px;
+  width: 180px;
   font-size: 20px;
   margin-right: 10px;
   text-align: end;
@@ -44,23 +45,30 @@ const SubmitButton = styled.button`
   }
 `;
 
-export default function LoginPage() {
-  const { setUser } = useContext(AuthContext);
+export default function Register() {
   const [username, setUsername] = useState("");
+  const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmedPassword, setConfirmedPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const { setUser } = useContext(AuthContext);
   const history = useHistory();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!username || !password)
-      return setErrorMessage("請填寫 Username 和 Password");
+    if (!username || !nickname || !password || !confirmedPassword)
+      return setErrorMessage("請填寫所有欄位");
 
-    login(username, password).then((data) => {
-      if (data.ok === 0) {
-        return setErrorMessage(data.message);
+    if (password !== confirmedPassword) return setErrorMessage("輪入密碼不同");
+    if (username === nickname)
+      return setErrorMessage("Username 和 Nickname 不可以一樣");
+
+    register(username, nickname, password).then((data) => {
+      console.log(data);
+      if (data.ok !== 1) {
+        return setErrorMessage(data.message.toString());
       }
       setAuthToken(data.token);
       getMe(data.token).then((response) => {
@@ -74,6 +82,7 @@ export default function LoginPage() {
       });
     });
   };
+
   return (
     <FormContainer onSubmit={handleSubmit}>
       <InputContainer>
@@ -84,6 +93,13 @@ export default function LoginPage() {
         />
       </InputContainer>
       <InputContainer>
+        <InputTitle>Nickname</InputTitle>
+        <InputBox
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+        />
+      </InputContainer>
+      <InputContainer>
         <InputTitle>Password:</InputTitle>
         <InputBox
           type="password"
@@ -91,7 +107,15 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
       </InputContainer>
-      <SubmitButton>登入</SubmitButton>
+      <InputContainer>
+        <InputTitle>Confirm Password:</InputTitle>
+        <InputBox
+          type="password"
+          value={confirmedPassword}
+          onChange={(e) => setConfirmedPassword(e.target.value)}
+        />
+      </InputContainer>
+      <SubmitButton>註冊</SubmitButton>
       {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
     </FormContainer>
   );

@@ -1,8 +1,8 @@
 import styled from "styled-components";
 import { Link, useLocation } from "react-router-dom";
 import { useContext } from "react";
-import { AuthoContext } from "../../contexts";
-import { setAuthToken } from "../utils";
+import { AuthContext } from "../../contexts";
+import { setAuthToken } from "../../utils";
 
 const HeaderContainer = styled.div`
   height: 64px;
@@ -56,8 +56,8 @@ const LeftContainer = styled.div`
 `;
 
 export default function Header() {
-  const locations = useLocation();
-  const { user, setUser, isGettingUser } = useContext(AuthoContext);
+  const location = useLocation();
+  const { user, setUser, isGettingUser } = useContext(AuthContext);
 
   const handleLogout = () => {
     setAuthToken("");
@@ -68,11 +68,14 @@ export default function Header() {
       <LeftContainer>
         <Brand>我的第一個部落格</Brand>
         <NavbarList>
-          <Nav to="/" $active={locations.pathname === "/"}>
+          <Nav to="/" $active={location.pathname === "/"}>
             首頁
           </Nav>
+          <Nav to="/about" $active={location.pathname === "/about"}>
+            關於我們
+          </Nav>
           {user && (
-            <Nav to="/new_post" $active={locations.pathname === "/new_post"}>
+            <Nav to="/new_post" $active={location.pathname === "/new_post"}>
               發佈文章
             </Nav>
           )}
@@ -81,7 +84,12 @@ export default function Header() {
       {!isGettingUser && (
         <NavbarList>
           {!user && (
-            <Nav to="/login" $active={locations.pathname === "/login"}>
+            <Nav to="/register" $active={location.pathname === "/register"}>
+              註冊
+            </Nav>
+          )}
+          {!user && (
+            <Nav to="/login" $active={location.pathname === "/login"}>
               登入
             </Nav>
           )}

@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { getPost } from "../../WebAPI";
 
 const Root = styled.div`
-  width: 80%;
+  width: 50%;
   margin: 0 auto;
 `;
 

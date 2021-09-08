@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { getPosts } from "../../WebAPI";
+import Pagination from "../../components/Pagination";
 
 const Root = styled.div`
-  width: 80%;
+  width: 50%;
   margin: 0 auto;
+`;
+
+const PostsContainer = styled.div`
+  height: 325px;
 `;
 
 const PostContainer = styled.div`
@@ -36,17 +41,33 @@ function Post({ post }) {
 }
 
 export default function HomePage() {
-  console.log("render");
   const [posts, setPosts] = useState([]);
+  const [numberOfPosts, setNumberOfPosts] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => {
-    getPosts().then((posts) => setPosts(posts));
-  }, []);
+    getPosts(currentPage)
+      .then(({ postsAmount, postsContent }) => {
+        setNumberOfPosts(postsAmount);
+        return postsContent;
+      })
+      .then((posts) => setPosts(posts));
+  }, [currentPage]);
+  console.log(currentPage);
 
   return (
     <Root>
-      {posts.map((post) => {
-        return <Post key={post.id} post={post} />;
-      })}
+      <PostsContainer>
+        {posts.map((post) => {
+          return <Post key={post.id} post={post} />;
+        })}
+      </PostsContainer>
+
+      <Pagination
+        currentPage={currentPage}
+        numberOfPosts={numberOfPosts}
+        setCurrentPage={setCurrentPage}
+      />
     </Root>
   );
 }
