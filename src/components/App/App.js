@@ -19,7 +19,6 @@ const Root = styled.div`
 `;
 
 function App() {
-  console.log("render");
   const [user, setUser] = useState(null);
   const [isGettingUser, setIsGettingUser] = useState(true);
 

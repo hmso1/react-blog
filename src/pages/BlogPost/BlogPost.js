@@ -19,6 +19,7 @@ const PostHeader = styled.div`
 const PostTitle = styled.h1`
   font-size: 20px;
   width: 75%;
+  word-break: break-all;
 `;
 
 const PostDate = styled.div`
@@ -27,6 +28,7 @@ const PostDate = styled.div`
 
 const PostBody = styled.div`
   padding-top: 20px;
+  word-break: break-all;
 `;
 
 function Post({ post }) {

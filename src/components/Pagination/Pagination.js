@@ -53,7 +53,6 @@ export default function Pagination({
   }
 
   pages.push(Math.ceil(numberOfPosts / 5));
-  console.log(pages);
 
   return (
     <PageButtonContainer>

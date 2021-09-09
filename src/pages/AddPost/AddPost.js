@@ -19,7 +19,7 @@ const InputContainer = styled.div`
 const InputTitle = styled.span`
   display: inline-block;
   font-size: 20px;
-  margin-right: 10px;
+  margin: 0 10px 5px 0;
   text-align: end;
 `;
 
@@ -86,7 +86,7 @@ export default function AddPost() {
         <InputBox value={title} onChange={(e) => setTitle(e.target.value)} />
       </InputContainer>
       <InputContainer>
-        <InputTitle>內容</InputTitle>
+        <InputTitle>內容：</InputTitle>
         <TextArea value={body} onChange={(e) => setBody(e.target.value)} />
       </InputContainer>
 
