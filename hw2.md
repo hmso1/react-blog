@@ -5,14 +5,50 @@
 圖中例出 Class component 的 lifecycle 中的 method 的時間點
 <img src="https://i.imgur.com/Cu3zWqu.png" style="width: 1000px">
 
+### 常用使用的 method
+
 1. render()：
-   會 this.props 和 this.state 的內容回傳以下的物件：
+   會根據 this.props 和 this.state 的內容回傳以下的物件：
 
 - React Element：JSX, 可以是基本的 tag 或是一個 Class component
-- Arrays and Fragments：
-- Portals：在 class component 中，將資料傳遞到給第二個 class component (Class Component B) 時，Class Componet B 不可以直接以 {this.props.children} 去 render 出
+- Arrays and Fragments：可以 render 多個 React element。因為 component return 時一定要以一個 tag 包住內容，使用 Fragment 回傳時只會回傳內容，[官網介紹](https://zh-hant.reactjs.org/docs/fragments.html)
+- Portals：用於 parent component 有 overflow: hidden 或者 z-index 的樣式時，卻仍需要 child 在視覺上「跳出」其容器的狀況。將 children 放在 sibling 上，但 children bubble 時會傳遞到 parent 上[官網介紹](https://zh-hant.reactjs.org/docs/portals.html)，
 - 文字，數字
 - booleans, null：多數情況會是 `return {isTure && <Component />} `
+
+建議應該保持 render() 是 pure, 不應該可以改變 state 或是和瀏覽器有所互動
+
+2. constructor()
+   用途：1. 初始化 this.state 2. 為 event handler 方法綁定 instance
+   要在 constructor() 任何宣告之前呼叫 `super(props)` ，否則，this.props 在 constructor 中的值會出現 undefined 的 bug。
+
+不要在用 state 儲存 props 的值
+
+```js
+constructor(props) {
+ super(props);
+ // 請不要這樣做！
+ this.state = { color: props.color };
+}
+```
+
+這樣做基本上就算 props 改變了 state.color 的值都不會更新的，如果是想當作儲存 defaultColor 以便之後 reset 使用，應該將 prop 重新命名為 defaultColor。
+
+3. componentDidMount()
+   根據 lifecycle，componentDidMount() 發生的時間點會是 DOM Tree 產生後，可以控制 DOM node，適合做 network request, subscription。
+   如果在 componentDidMount() 內 setState 會重新執行 render()，但這會在瀏覽器更新螢幕之前發生，所以使用者不會看見這兩次 render 中過渡時期的 state。
+
+4. componentDidUpdate()
+   會在更新後和 shouldComponentUpdate() 回傳的值 = true（如果有的話） 的時候被呼叫，不會在初次 render 時被呼叫。和 componentDidMount() 一樣，發生的時間點會是 DOM Tree 產生後，可以控制 DOM node，適合做 network request。但最好對較 this.props 和 prevProps 才決定是否進行 network request。
+   可以在 componentDidMount() 內 setState 但一定要在一個條件語句內，否則你會進入一個無限迴圈。會在瀏覽器更新螢幕之前發生，所以使用者不會看見這兩次 render 中過渡時期的 state。
+
+如果你的 component 裡面有 getSnapshotBeforeUpdate() ，其回傳的值將會被當作第三個「snapshot」參數傳給 componentDidUpdate()。否則這個參數會是 undefined。
+
+5. componentWillUnmount()
+   在 component unmount 或 destory 後被呼叫，可以進行任何清理，像是取消計時器和網路請求或是移除任何在 componentDidMount() 內建立的 subscription。
+   不應該在 componentWillUnmount() 內呼叫 setState()，因為這個 component 永遠不會再重新 render。當一個 component instance 被 unmount 後，它就永遠不會再被 mount。
+
+### 不常使用的 method
 
 ## 請問 class component 與 function component 的差別是什麼？
 
