@@ -1,5 +1,52 @@
 ## 請列出 React 內建的所有 hook，並大概講解功能是什麼
 
+### 基礎的 Hook
+
+1. useState()
+
+   `const [state, setState] = useState(initialState);`
+   useState 會回傳 state 的變數和更新 state 的 function。
+
+   初始化 state 有二種方法：
+
+   1. useState(initalState)：state 的數值等於 initalState
+   2. ````js
+              //state 的數值等於 someExpensiveComputation 的回傳值
+              useState(() => {
+                  const initialState = someExpensiveComputation(props);
+                  return initialState;
+              });
+          ```
+      在後續的重新 render，useState 回傳的第一個值必定會是最後更新的 state。**所以每次 render 時，useState 都會再次執行，只不過回傳的不是初始值**
+      ````
+
+   setState 是用來更新 state 並令到 component 重新 render，有二種更新方法：
+
+   1. setState(newState)
+   2. 使用上一個 state 去計算新 state 的值：setState(prevState => prevState + 1) 回傳的是新的 state 數值
+      React 會確保 setState 是穏定而且在重新 render 時不會改變，所以可以在 useEffect 或 useCallback 的的依賴列表省略它。
+      如果 setState 回傳與目前的 state 相同的值，React 將會跳過子 component 的 render 及 effect 的執行。 React 可能仍需要在跳過 render 之前 render 該 component。這不應該是個問題，因為 React 不會不必要地「深入」到 component tree 中。如果你在 render 當中執行了昂貴的計算，你可以使用 useMemo 來最佳化。
+
+2. useEffect()
+
+   在 function componet 中，在 render 階段是不允許有 mutation、subscription、timer、日誌記錄、以及其他 side effect 的進行因為這可能會導致容易混淆的 bug 和不一致的 UI。useEffect 會在 render 和瀏覽器顯示畫面之後觸發，所以適合進行 side effect，例如設定 subscription 和 event handler，因為絕大部份的工作都不應該阻礙瀏覽器更新晝面。但如果 side effect 會影響到 UI 畫面，就會引致視覺不一致，這種情況會建議使用 useLayoutEffect()。雖然 useEffect 會被延遲直到瀏覽器繪制完成，但會保證在任何新 render 前執行。React 會在開始新一個更新前刷新（完成?!）上一輪 render 的 effect。
+
+   useEffect() 可以傳入 2 個參數：
+
+   1. 要執行的 function
+   2. 所依賴的值 array
+
+   ```js
+   useEffect(() => {
+     const subscription = props.source.subscribe();
+     return () => {
+       subscription.unsubscribe();
+     };
+   }, [props.source]);
+   ```
+
+3. useContext()
+
 ## 請列出 class component 的所有 lifecycle 的 method，並大概解釋觸發的時機點
 
 圖中例出 Class component 的 lifecycle 中的 method 的時間點
@@ -10,45 +57,104 @@
 1. render()：
    會根據 this.props 和 this.state 的內容回傳以下的物件：
 
-- React Element：JSX, 可以是基本的 tag 或是一個 Class component
-- Arrays and Fragments：可以 render 多個 React element。因為 component return 時一定要以一個 tag 包住內容，使用 Fragment 回傳時只會回傳內容，[官網介紹](https://zh-hant.reactjs.org/docs/fragments.html)
-- Portals：用於 parent component 有 overflow: hidden 或者 z-index 的樣式時，卻仍需要 child 在視覺上「跳出」其容器的狀況。將 children 放在 sibling 上，但 children bubble 時會傳遞到 parent 上[官網介紹](https://zh-hant.reactjs.org/docs/portals.html)，
-- 文字，數字
-- booleans, null：多數情況會是 `return {isTure && <Component />} `
+   - React Element：JSX, 可以是基本的 tag 或是一個 Class component
+   - Arrays and Fragments：可以 render 多個 React element。因為 component return 時一定要以一個 tag 包住內容，使用 Fragment 回傳時只會回傳內容，[官網介紹](https://zh-hant.reactjs.org/docs/fragments.html)
+   - Portals：用於 parent component 有 overflow: hidden 或者 z-index 的樣式時，卻仍需要 child 在視覺上「跳出」其容器的狀況。將 children 放在 sibling 上，但 children bubble 時會傳遞到 parent 上[官網介紹](https://zh-hant.reactjs.org/docs/portals.html)，
+   - 文字，數字
+   - booleans, null：多數情況會是 `return {isTure && <Component />} `
 
-建議應該保持 render() 是 pure, 不應該可以改變 state 或是和瀏覽器有所互動
+   建議應該保持 render() 是 pure, 不應該可以改變 state 或是和瀏覽器有所互動
 
 2. constructor()
    用途：1. 初始化 this.state 2. 為 event handler 方法綁定 instance
    要在 constructor() 任何宣告之前呼叫 `super(props)` ，否則，this.props 在 constructor 中的值會出現 undefined 的 bug。
 
-不要在用 state 儲存 props 的值
+   不要在用 state 儲存 props 的值
 
-```js
-constructor(props) {
- super(props);
- // 請不要這樣做！
- this.state = { color: props.color };
-}
-```
+   ```js
+   constructor(props) {
+   super(props);
+   // 請不要這樣做！
+   this.state = { color: props.color };
+   }
+   ```
 
-這樣做基本上就算 props 改變了 state.color 的值都不會更新的，如果是想當作儲存 defaultColor 以便之後 reset 使用，應該將 prop 重新命名為 defaultColor。
+   這樣做基本上就算 props 改變了 state.color 的值都不會更新的，如果是想當作儲存 defaultColor 以便之後 reset 使用，應該將 prop 重新命名為 defaultColor。
 
 3. componentDidMount()
+
    根據 lifecycle，componentDidMount() 發生的時間點會是 DOM Tree 產生後，可以控制 DOM node，適合做 network request, subscription。
+
    如果在 componentDidMount() 內 setState 會重新執行 render()，但這會在瀏覽器更新螢幕之前發生，所以使用者不會看見這兩次 render 中過渡時期的 state。
 
-4. componentDidUpdate()
+4. componentDidUpdate(prevProps, prevState, snapshot)
+
    會在更新後和 shouldComponentUpdate() 回傳的值 = true（如果有的話） 的時候被呼叫，不會在初次 render 時被呼叫。和 componentDidMount() 一樣，發生的時間點會是 DOM Tree 產生後，可以控制 DOM node，適合做 network request。但最好對較 this.props 和 prevProps 才決定是否進行 network request。
+
    可以在 componentDidMount() 內 setState 但一定要在一個條件語句內，否則你會進入一個無限迴圈。會在瀏覽器更新螢幕之前發生，所以使用者不會看見這兩次 render 中過渡時期的 state。
 
-如果你的 component 裡面有 getSnapshotBeforeUpdate() ，其回傳的值將會被當作第三個「snapshot」參數傳給 componentDidUpdate()。否則這個參數會是 undefined。
+   如果你的 component 裡面有 getSnapshotBeforeUpdate() ，其回傳的值將會被當作第三個「snapshot」參數傳給 componentDidUpdate()。否則這個參數會是 undefined。
 
 5. componentWillUnmount()
+
    在 component unmount 或 destory 後被呼叫，可以進行任何清理，像是取消計時器和網路請求或是移除任何在 componentDidMount() 內建立的 subscription。
+
    不應該在 componentWillUnmount() 內呼叫 setState()，因為這個 component 永遠不會再重新 render。當一個 component instance 被 unmount 後，它就永遠不會再被 mount。
 
 ### 不常使用的 method
+
+1. shouldComponentUpdate(nextProps, nextState)
+   shouldComponentUpdate() 是為了優化效能，回傳 false 的時候 UNSAFE_componentWillUpdate()、render() 和 componentDidUpdate() 不會執行。會在 props 或 state 被接收之後並在 component 被 render 之前被呼叫，不會在初次 render 或使用 forceUpdate() 時呼叫。
+
+   應該用 PureComponent 代替，因為 PureComponent 會為 prop 和 state 做一個淺層比較（shallow comparison）並減低你錯過必要更新的機會。
+
+   如果要使用 shouldComponentUpdate() 要將 this.props 與 nextProps 以及 this.state 和 nextState 做比較，確保 component 在 props 或 state 改變後是會更新，回傳 false 並不會避免 child component 在它們的 state 改變時重新 render。
+
+   不應該在 shouldComponentUpdate() 中做深度比較或使用 JSON.stringify()。它們效率不佳且會造成效能問題。
+
+2. static getDerviedStateFromProps(props, state)
+
+   （睇一百遍都不太明做什麼，但好似官網也不推薦使用!!!!!）
+
+   會在 component 被 render 前被呼叫，不管是在首次 mount 時或後續的更新時，在 shouldComponentUpdate() 前發生，所以每一次 render 都會被呼叫。會回傳 object 去更新 state 或是回傳 null 代表不用更新 state。
+
+   使用時機：有時 state 會依賴 prop 在一段時間過後所產生的改變。例如，也許建立一個 `<Transition>` component 是很方便的，我們可以用它來比較其之前與之後的 children，並決定我們要 animate in and out 哪一個 child。使用 getDerviedStateFromProps() 會導致冗長的程式碼並使你的 component 很難理解，如遇到以下情況應使用較為簡單的替代方案：
+
+   - 在某個 prop 改變時產生相對應的 side effect（例如，資料提取或使用動畫），請使用 componentDidUpdate。
+   - 在某個 prop 改變時重新計算某些資料，請使用 memoization helper。
+   - 如果你想要 在某個 prop 改變時「重置」某個 state，請考慮建立一個完全被控制 的 component 或帶有 key 的完全不可被控制 component。
+     [You Probably Don't Need Derived State](https://zh-hant.reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html#recommendation-fully-uncontrolled-component-with-a-key)
+
+3. getSnapshotBeforeUpdate(prevProps, prevState)
+
+   在 DOM Tree 改變前抓取未變的 DOM 的資料，將回傳值會傳遞到 componentDidUpdate() 的第三個參數以做一些畫面的調整，可以用於對話串這類需要以某種特殊方始處理滾動軸位置的 UI 中出現。
+
+#### [錯誤邊界](https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html)
+
+是用於截取 child component tree 中 JavaScript 錯誤、記錄錯誤、並顯示一個 fallback UI 而非 crashed component tree。錯誤邊界會在 render 期間、生命週期方法、以及其下整個 tree 群組所有的 constructor 內截取錯誤。
+
+Class Component 會變成錯誤邊界當使用了 static getDerivedStateFromError() 或 componentDidCatch() （可同時使用）。會這二個 method 中更新 state 會截取在其下的 tree 內未被處理的 JavaScript 錯誤，並顯示一個 fallback UI。
+
+**錯誤邊界只會截取在 tree 中、自身以下的 component 中的錯誤。錯誤邊界無法截取自身內的錯誤。**
+我想不能截取自身內的錯誤是指 render() 以外的 method 或 function 如果發生錯誤是截取不到 ?!
+
+4. static getDerivedStateFromError(error)
+   當 render 期間被呼叫，所以 side effect 是不被允許的。
+
+   當 descendant component 出現時就會呼叫 getDerivedStateFromError(error)，它會接收該錯誤為其參數並回傳一個值以更新 state。
+
+   descendant component 應該是指回傳了不是 render() 應該回傳的物件?!
+
+5. componentDidCatch(error, info)
+
+   同樣地在 descendant component 出現時就會呼叫 getDerivedStateFromError(error, info)，有二個參數：
+
+   1. error - 被拋出的錯誤。
+   2. info - 一個有 componentStack key 的 object，這個 key 包含有那一個 component 拋出錯誤的資訊。
+
+   是在 commit 期間發生，可以進行 side effect，應該被用來做類似記錄錯誤這類的事情。在 `development` 時，錯誤會 bubbling 到 `window` 上，任何的 window.onerror 或 window.addEventListener('error', callback) 將攔截透過 componentDidCatch 所捕捉到的錯誤。但在 `production` 時不會 bubbling, 所以錯誤會被 componentDidCatch() 截取。
+
+   **應該用 getDerivedStateFromError() 來處理 fallback render，而不是在發生錯誤時呼叫 setState 來 render 一個含有 componentDidCatch() 的 fallback UI**
 
 ## 請問 class component 與 function component 的差別是什麼？
 
